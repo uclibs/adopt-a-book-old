@@ -1,0 +1,68 @@
+a{ color: #28AF91;}
+a:hover, a:focus { color: #999999;}
+
+nav {background: url(../images/btn_glow.png) repeat-x scroll center bottom #28AF91;}
+.sf-menu ul {border-top:4px solid #0C1B25; box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); -webkit-box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); -moz-box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); -o-box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); border-bottom:4px solid #0C1B25;}
+
+h1, .test-txt .author, .sf-menu ul li.arrow-top i, .sidebar-links ul li a:hover, .sidebar-links ul li.current a, .arrow-list.blue li:before, .arrow-list-2.blue li:before, .arrow-list-3.blue li:before, .arrow-list-4.blue li:before, .service-styel3 h3 span, .port3-head .blog-txt i, .head-two, .arrow-list-2 li:before, blockquote:before, .header-top span, .port-head h3 span{
+	color:#28AF91;
+}
+.sf-menu ul li a:hover, .sf-menu ul li.sfHover > a {background:url(../images/btn_glow.png) repeat-x #28AF91;}
+blockquote{border-left:5px solid #28AF91;}
+.test-img2 img{border:1px solid #28AF91;}
+.flexslider:hover .flex-next:hover, .flexslider:hover .flex-prev:hover, #back-top a, .nextContainer .next:hover, .prevContainer .prev:hover, html .tab-menu li.active a:hover, html .tab-menu li.active a, html .tab-menu li a:hover, .contact-icon i, .shadow-wrapper .port3-head .date-txt, .skill1, .skill2, .skill3, .skill4, .skill5, .skill6, a.button-green, a.button-green.btn:hover, a.button-green.btn.active, a.button-green.btn:active, #portolfio-filter a:hover, #portolfio-filter a.active, .tab-cloud a:hover, header, .gallery-small .center-bar a:hover, .icon-wrap, .port-like, .flex-caption h2, #services-tab ul.tabs li.active a, .tp-caption.big_orange, .tp-caption.big_pink, .tp-caption.big_green, h4.form_thanks{
+	background-color:#28AF91;
+}
+
+.welcome-wrap{background:url(../images/banner-abstract.png) no-repeat center center #28AF91;}
+#footer-bottom {border-top:1px solid #0596D5;}
+
+.testimonials-slider .flex-control-paging li a {background:url(../images/sliders/testimonials_dots_blue.png) no-repeat top left;}
+.testimonials-slider .flex-control-paging li a:hover, .testimonials-slider .flex-control-paging li a.flex-active { background:url(../images/sliders/testimonials_dots_blue.png) no-repeat top right;}
+.social-icons ul li a{
+	background:url(../images/icons/social_icons_blue.png) no-repeat #FFF;
+}
+/*.zoom-icons a, .zoom-icons2 a{
+	background:url(../images/icons/icon_portfolio_blue.png) no-repeat top left;
+}
+.zoom-icons a:hover, .zoom-icons2 a:hover{
+	background:url(../images/icons/icon_portfolio_blue.png) no-repeat top right;
+	color:#FFF;
+}
+.service-ico{
+	background:url(../images/icons/hex_icon_blue.png) no-repeat top center;
+}*/
+a.button-blue, a.button-blue.btn:hover, a.button-blue.btn.active, a.button-blue.btn:active {
+    background-color: #28AF91;
+    color: #FFFFFF;
+}
+.pagination a:hover{
+	background:#28AF91;
+}
+.sidebar-category li i {
+    color: #28AF91;
+}
+.imgborder img:hover{
+	border:2px solid #28AF91;
+	-webkit-transition: all 0.35s ease;
+	-moz-transition: all 0.35s ease;
+	-o-transition: all 0.35s ease;
+	transition: all 0.35s ease;
+}
+
+
+.portfolio-skin-carousel .jcarousel-next-horizontal, .portfolio-skin-carousel .jcarousel-prev-horizontal,
+.clients-skin-carousel .jcarousel-next-horizontal, .clients-skin-carousel .jcarousel-prev-horizontal{background:#FFF; color:#28AF91;}
+.portfolio-skin-carousel .jcarousel-prev-disabled-horizontal, .portfolio-skin-carousel .jcarousel-next-disabled-horizontal,
+.clients-skin-carousel .jcarousel-prev-disabled-horizontal, .clients-skin-carousel .jcarousel-next-disabled-horizontal{background:#ffffff; color:#28AF91;}
+
+.portfolio-skin-carousel .jcarousel-next-horizontal:hover, .portfolio-skin-carousel .jcarousel-prev-horizontal:hover,
+.clients-skin-carousel .jcarousel-next-horizontal:hover, .clients-skin-carousel .jcarousel-prev-horizontal:hover{background:#28AF91;color:#FFF;}
+
+.clients-skin-carousel .jcarousel-prev-disabled-horizontal, .clients-skin-carousel .jcarousel-next-disabled-horizontal{background:#ffffff; color:#28AF91;}
+
+.portfolio-skin-carousel .jcarousel-next-disabled-horizontal:hover, .portfolio-skin-carousel .jcarousel-prev-disabled-horizontal:hover,
+.clients-skin-carousel .jcarousel-next-disabled-horizontal:hover, .clients-skin-carousel .jcarousel-prev-disabled-horizontal:hover{
+	background:#FFF; color:#28AF91;
+}
+

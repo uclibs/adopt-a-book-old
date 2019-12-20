@@ -1,0 +1,7 @@
+AuthType Basic
+AuthName "University Of Cincinnati Libraries"
+AuthBasicProvider ldap
+AuthLDAPBindDN "CN=ucl_ldap,OU=Users,OU=UCL,OU=Libraries,DC=ad,DC=uc,DC=edu"
+AuthLDAPBindPassword "K@38XZQcqU!g"
+AuthLDAPURL "ldaps://ad.uc.edu:636/DC=ad,DC=uc,DC=edu?sAMAccountName?sub?(&(objectClass=Person)(memberOf=CN=UCLWebAdoptABookDB,OU=Users,OU=Groups,OU=UCL,OU=Libraries,DC=ad,DC=uc,DC=edu))"
+Require valid-user

@@ -1,0 +1,15 @@
+/* --------------------------------------------------------
+Import Basic Files
+-------------------------------------------------------- */
+@import url("normalize.css");			/* Reset Style */
+@import url("bootstrap.css");			/* Grid Style */
+@import url("superfish.css");			/* Main Navigation Style */
+@import url("font-awesome.min.css");	/* Icon Font Style */
+@import url("iview.css");				/* iView Slider Style */
+@import url("hoverex-all.min.css");		/* Animated Hover Style */
+@import url("prettyPhoto.css");			/* Light Style */
+@import url('../layerslider/css/layerslider.css'); /* Import LayerSlider Stylesheet */
+@import url("flexslider.css");			/* Flexslider Style */
+@import url("layout.css");				/* Main Layout Style */
+@import url("slitslider.css");
+@import url("custom.css");

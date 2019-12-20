@@ -1,0 +1,2 @@
+# Don't track .DS_Store on MacOS
+.DS_Store
