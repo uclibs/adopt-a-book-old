@@ -1,5 +1,82 @@
 <?php
 	include 'dbh.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+	if(!isset($_SESSION)){
+			session_start();
+		$inactive = 1800; //time for expiration
+		ini_set('session.gc_maxlifetime', $inactive);
+
+		if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"]) && (time() - $_SESSION["cart"] > $inactive)) {
+		//session_regenerate_id(true); //generate new session ID
+			foreach($_SESSION["cart_item"] as $k => $v) {
+				$conn->query("UPDATE main_book SET adopt_status = 0 WHERE bid='" . $v["bid"] . "'");
+			}
+			session_unset();     // unset $_SESSION variable for this page
+			session_destroy();   // destroy session data
+		}
+		
+	}
+	$_SESSION["cart"] = time(); // Update session
+	if(!empty($_GET["action"])) {
+	switch($_GET["action"]) {
+		case "add":
+				$exist = false;
+				$url="http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+				$id = substr($url, strrpos($url, '?') + 1);
+				$bid_part = explode("&", $id);
+				$bid = $bid_part[0];
+				$resultset = $conn->query("SELECT amount, bid, title, author, category, library, image FROM main_book WHERE bid='" . $bid . "'");
+				while($row=mysqli_fetch_assoc($resultset)) {
+				$bookById[] = $row;
+				}	
+				$bookArray = array($bookById[0]["bid"]=>array('amount'=>$bookById[0]["amount"], 'bid'=>$bookById[0]["bid"], 'title'=>$bookById[0]["title"], 'author'=>$bookById[0]["author"], 'image'=>$bookById[0]["image"]));				
+				if(!empty($_SESSION["cart_item"])) {
+					foreach($_SESSION["cart_item"] as $v) {
+							if($v["bid"] == $bid)
+								$exist = true;
+						}
+						if($exist == false)
+							$_SESSION["cart_item"] = array_merge($_SESSION["cart_item"],$bookArray);
+				}
+				else {
+					$_SESSION["cart_item"] = $bookArray;
+				}
+				$conn->query("UPDATE main_book SET adopt_status = 2 WHERE bid='" . $bid . "'");
+		break;
+		}
+	}
+	$url="http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+	$parsed_url = parse_url($url);
+	$query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+	$query = substr($query, 1);
+	$query_part = explode("&", $query);
+	$query = $query_part[0];
+	$url_refresh = "/adoptabook/readmore.php?" . $query;
+	header("refresh: 1801; url = $url_refresh");
+	$pending = false;
+	if(!isset($_GET['action'])){
+		$resultset = $conn->query("SELECT adopt_status FROM main_book WHERE bid='" . $query . "'");
+			while($row=mysqli_fetch_assoc($resultset)) {
+				if($row['adopt_status'] == 2){
+					$pending = true;
+				}
+			}
+	}
+	
+	if(isset($_POST['add'])) { 
+			$resultset = $conn->query("SELECT adopt_status FROM main_book WHERE bid='" . $query . "'");
+			while($row=mysqli_fetch_assoc($resultset)) {
+				if($row['adopt_status'] == 0){
+					header("Location: /adoptabook/readmore.php?" .$query."&action=add"); 
+					exit();
+				}
+				else{
+					$pending = true;
+				}
+			}
+        }
 ?>
 
 <!doctype html>
@@ -77,36 +154,45 @@
 	<![endif]-->    
 	
 	<style>
-		.cstm {
-			background-color: #F6F4F4;
-		  color: red;
-		  padding: 8px 14px;
-		  text-decoration: none;
-		  text-transform: uppercase;
-		  border-radius: 4px;
-		  -webkit-transition-duration: 0.4s; /* Safari */
-		  transition-duration: 0.4s;
-		  cursor: pointer;
-		}
+		#sbt {
+			  background-color: black; /* Green */
+			  border: none;
+			  color: white;
+			  padding: 8px 14px;
+			  text-align: center;
+			  text-decoration: none;
+			  display: inline-block;
+			  margin: 4px 2px;
+			  border-radius: 4px;
+			  cursor: pointer;
+			  -webkit-transition-duration: 0.4s; /* Safari */
+			  transition-duration: 0.4s;
+			}
 
-		.one-edge-shadow {
-			-webkit-box-shadow: 0 8px 6px -6px black;
-			   -moz-box-shadow: 0 8px 6px -6px black;
-					box-shadow: 0 8px 6px -6px black;
-		}
 
-		.cstm:hover {
-		  background-color: #555;
-		  color: red;
-		  
+		#sbt:hover:enabled {
+			  box-shadow: 7px 4px 7px -3px rgba(0,0,0,0.35);
+			  color: white;
+			  background-color: #404040;
+			}
+			
+		#sbt[disabled] {
+				background: #666;
+				cursor: not-allowed;
+			}
+		button {
+			font-size: 18px;
 		}
-		
 		.foot1 {
 		text-align: center;
 	    }
 		.bookplate {
-			background-image: url('http://libapps.libraries.uc.edu/adoptabook/covers-thumb/2.png');
+			background-image: url('/adoptabook/covers-thumb/bookplate.png');
 			height: 615px;
+		}
+		.heading{
+			color:#e00122;
+			font-size:30px;
 		}
 </style>
 	
@@ -121,9 +207,13 @@
         
         <div id="breadcrumb">
             <div class="container">
-                <div class="row">
-                    <div class="span8">
-                        <h1 style="font-size: 35px;">Book Details</h1>
+					<?php if($pending == true){
+						echo'<br/><br/><div><strong><p style="color:#e00122;font-size:20px">Sorry! This book is currently unavailable.</p></strong></div>';
+						}
+					?>
+                    <div class="row">
+					<div class="span8">
+                        <h2 class="heading"">Book Details</h2>
                      
                     </div>
                     
@@ -133,16 +223,15 @@
         
         <div class="container">
 		<?php
-		$url="http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-		$parsed_url = parse_url($url);
-		$query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
-		$query = substr($query, 1);
-		$sql = "SELECT  Bid, title, author, category, library, image, description, amount, adopt_status, condition_treatment, adopter_fname ,adopter_lname, adopter_ded , pub_year FROM main_book where Bid=$query";
+		$sql = "SELECT  Bid, title, author, category, library, image, description, amount, adopt_status, condition_treatment, adopter_fname ,adopter_lname, adopter_ded , adopter_recognition, pub_year,adopt_year FROM main_book where Bid=$query";
 				$result = $conn->query($sql);
+               
 				if ($result->num_rows > 0) 
 					{
 					while($row = $result->fetch_assoc()) 
-					{		
+                            
+					{	 $authorvalue = trim($row["author"]); 
+                        
 				        if($row["adopt_status"] != 1 )
 						{
 							if($row["adopt_status"] == 0)
@@ -152,9 +241,14 @@
 							 echo '
 							   <div class="row" style="margin: 0px 0px 30px 2px;">
 								<div class = "row" style="padding-left: 15px;">
-									  <h1 style = "color: black;">'.$row["title"].'</h1>
-									  <p>  By '.$row["author"].' , '.$row["pub_year"].'. </p>
-								</div>
+									  <h1 style = "color: black;">'.$row["title"].'</h1>';
+									  if(  $authorvalue  != NULL && $row["pub_year"] != NULL)
+										echo '<p>'.$authorvalue.', '.$row["pub_year"].'</p>';
+									  else if(  $authorvalue  != NULL && $row["pub_year"] == NULL)
+										  echo '<p>'.$authorvalue.'</p>';
+									  else if(  $authorvalue  == NULL && $row["pub_year"] != NULL)
+										  echo '<p>'.$row["pub_year"].'</p>';
+								echo'</div>
 								</div>
 								<div class="row">
 								<div class="span8" style="text-align: justify;">
@@ -174,13 +268,13 @@
 								</div>
 								</div>
 								<div id="content" class="span4">
-									<img width="300px" height="300px" alt="'.$row["title"].'" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+									<img width="300px" height="300px" alt="'.$row["title"].'" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 								</div>
 								</div>
 								<br>
-								<div class="row">
-									  <a href="/adoptabook/details.php?'.$query.'" class="one-edge-shadow cstm" style="font-size: 20px;font-weight: bold;border: 2px solid #000;border-radius: 10px;color: #4A70C5;background: white;">ADOPT</a>			   
-								</div> 
+									<form method="post">
+									<button name="add" id="sbt" type="submit">Add to cart</button>
+									</form> 
 								
 								';
 							  }
@@ -189,9 +283,14 @@
 								  echo '
 							   <div class="row" style="margin: 0px 0px 30px 2px;">
 								<div class = "row" style="padding-left: 15px;">
-									  <h1 style = "color: black;">'.$row["title"].'</h1>
-									  <p>  By '.$row["author"].' , '.$row["pub_year"].'. </p>
-								</div>
+									  <h1 style = "color: black;">'.$row["title"].'</h1>';
+									  if(  $authorvalue  != NULL && $row["pub_year"] != NULL)
+										echo '<p>   '.  $authorvalue .', '.$row["pub_year"].' </p>';
+									  else if(  $authorvalue  != NULL && $row["pub_year"] == NULL)
+										  echo '<p>   '.  $authorvalue .' </p>';
+									  else if(  $authorvalue  == NULL && $row["pub_year"] != NULL)
+										  echo '<p>  '.$row["pub_year"].' </p>';
+								echo'</div>
 								</div>
 								<div class="row">
 								<div class="span8" style="text-align: justify;">
@@ -206,13 +305,13 @@
 								</div>
 								</div>
 								<div id="content" class="span4">
-								  <img width="300px" height="300px" alt="'.$row["title"].'" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+								  <img width="300px" height="300px" alt="'.$row["title"].'" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 								</div>
 								</div>
 								<br>
-								<div class="row">
-									  <a href="/adoptabook/details.php?'.$query.'" class="one-edge-shadow cstm" style="font-size: 20px;font-weight: bold;border: 2px solid #000;border-radius: 10px;color: #4A70C5;background: white;">ADOPT</a>			   
-								</div> 
+									<form method="post"">
+									<button name="add" id="sbt" type="submit">Add to Cart</button>';
+									echo'</form>
 								
 								';
 							  }
@@ -221,13 +320,19 @@
 							else
 							{
 								if ($row["category"] == "Preserve for the Future")
+                                    
 								{
 								echo '
 							   <div class="row" style="margin: 0px 0px 30px 2px;">
 								<div class = "row" style="padding-left: 15px;">
-									  <h1 style = "color: black;">'.$row["title"].' </h1>
-									  <p>  By '.$row["author"].' , '.$row["pub_year"].'. </p>
-								</div>
+									  <h1 style = "color: black;">'.$row["title"].'</h1>';
+									  if(  $authorvalue  != NULL && $row["pub_year"] != NULL)
+										echo '<p>   '.  $authorvalue .' , '.$row["pub_year"].' </p>';
+									  else if(  $authorvalue  != NULL && $row["pub_year"] == NULL)
+										  echo '<p>   '.  $authorvalue .' </p>';
+									  else if(  $authorvalue  == NULL && $row["pub_year"] != NULL)
+										  echo '<p>  '.$row["pub_year"].' </p>';
+								echo'</div>
 								</div>
 								<div class="row">
 								<div class="span8" style="text-align: justify;">
@@ -247,24 +352,32 @@
 								</div>
 								</div>
 								<div id="content" class="span4">
-									<img width="300px" height="300px" alt="'.$row["title"].'" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+									<img width="300px" height="300px" alt="'.$row["title"].'" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 								</div>
 								</div>
-								<br>
-								<div class="row">
-									  <div style="width: 100px;height: 20px;border:1px solid #000;background-color: #e5e5e5;font-size: 24px;color: rgba(0, 0, 0, 0.56);padding: 10px;border-radius: 25px;"><b>Pending<b></div>		   
-								</div> 
-								
-								';
+								<br>';
+									if($pending == false){
+									echo'<div><button id="sbt" disabled>Added to cart</button>';
+									if(isset($_GET["action"]) && $_GET["action"] == "add") { ?>
+										<button id="sbt" style="margin-left:40px" type="button" onclick="window.location.href='/adoptabook/cart.php'" >View cart </button>
+										<button id="sbt" style="margin-left:40px" type="button" onclick="window.location.href='/adoptabook/tobeadopted.php'">Adopt more books </button>
+									<?php }
+									echo '</div>';
+									}
 								}
 								else
 								{
 								echo '
 							   <div class="row" style="margin: 0px 0px 30px 2px;">
 								<div class = "row" style="padding-left: 15px;">
-									  <h1 style = "color: black;">'.$row["title"].'</h1>
-									  <p>  By '.$row["author"].' , '.$row["pub_year"].'. </p>
-								</div>
+									  <h1 style = "color: black;">'.$row["title"].'</h1>';
+									  if(  $authorvalue  != NULL && $row["pub_year"] != NULL)
+										echo '<p>   '.  $authorvalue .' , '.$row["pub_year"].' </p>';
+									  else if(  $authorvalue  != NULL && $row["pub_year"] == NULL)
+										  echo '<p>   '.  $authorvalue .' </p>';
+									  else if(  $authorvalue  == NULL && $row["pub_year"] != NULL)
+										  echo '<p>  '.$row["pub_year"].' </p>';
+								echo'</div>
 								</div>
 								<div class="row">
 								<div class="span8" style="text-align: justify;">
@@ -279,14 +392,18 @@
 								</div>
 								</div>
 								<div id="content" class="span4">
-								  <img width="300px" height="300px" alt="'.$row["title"].'" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+								  <img width="300px" height="300px" alt="'.$row["title"].'" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 								</div>
 								</div>
-								<br>
-								<div class="row">
-									  <div style="width: 100px;height: 20px;border:1px solid #000;background-color: #e5e5e5;font-size: 24px;color: rgba(0, 0, 0, 0.56);padding: 10px;border-radius: 25px;"><b>Pending<b></div>		   
-								</div> 	
-								';
+								<br>';
+									if($pending == false){
+									echo'<div><button id="sbt" disabled>Added to cart</button>';
+									if(isset($_GET["action"]) && $_GET["action"] == "add") { ?>
+										<button id="sbt" style="margin-left:40px" type="button" onclick="window.location.href='/adoptabook/cart.php'" >View cart </button>
+										<button id="sbt" style="margin-left:40px" type="button" onclick="window.location.href='/adoptabook/tobeadopted.php'">Adopt more books </button>
+									<?php }
+									echo '</div>';
+									}
 								}
 							}
 						}
@@ -297,14 +414,19 @@
 							{
 							   echo'<div class="row" style="margin: 0px 0px 30px 2px;">
 								<div class = "row" style="padding-left: 15px;">
-									  <h1 style = "color: black;">'.$row["title"].'</h1>
-									  <p>  By '.$row["author"].' , '.$row["pub_year"].'. </p>
-								</div>
+									  <h1 style = "color: black;">'.$row["title"].'</h1>';
+									  if(  $authorvalue  != NULL && $row["pub_year"] != NULL)
+										echo '<p>   '.  $authorvalue .' , '.$row["pub_year"].' </p>';
+									  else if(  $authorvalue  != NULL && $row["pub_year"] == NULL)
+										  echo '<p>   '.  $authorvalue .' </p>';
+									  else if(  $authorvalue  == NULL && $row["pub_year"] != NULL)
+										  echo '<p>  '.$row["pub_year"].' </p>';
+								echo'</div>
 								</div>
 								<div class="row">
 								<div class="span6" style="text-align: justify;" width: 500px;">
 								<div> 
-								   <img width="100px" height="40px" style="float: left; margin-right: 10px;" alt="'.$row["title"].'" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+								   <img width="100px" height="40px" style="float: left; margin-right: 10px;" alt="'.$row["title"].'" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 								<p style="text-align:justify">
 									'.$row["description"].'</P>
 								</div>
@@ -319,11 +441,13 @@
 								</div>
 								</div>
 								<div class=" bookplate span6" style="width: 410px;">
-									<div class="bookplate_text" style="padding: 410px 20px 20px 40px; word-break: break-word;">
-									<p><b>'.$row["title"].'</b></p>
-									<p> <b>Adopted by</b> <br>
-									'.$row["adopter_fname"].' </p>
-									<div class="adoption_message">
+								<div class="bookplate_text" style="padding: 410px 20px 20px 40px; word-break: break-word;">
+									<p><b>'.$row["title"].'</b></p>';
+									if(!empty($row["adopter_recognition"])){
+									echo'<p> <b>Adopted by</b> <br>
+									'.$row["adopter_recognition"].' </p>';
+									}
+									echo'<div class="adoption_message">
 									<p> <em>'.$row["adopter_ded"].'</em></p>
 									</div>
 									</div>
@@ -336,14 +460,19 @@
 							{
 								echo'<div class="row" style="margin: 0px 0px 30px 2px;">
 								<div class = "row" style="padding-left: 15px;">
-									  <h1 style = "color: black;">'.$row["title"].'</h1>
-									  <p>  By '.$row["author"].' , '.$row["pub_year"].'. </p>
-								</div>
+									  <h1 style = "color: black;">'.$row["title"].'</h1>';
+									  if(  $authorvalue  != NULL && $row["pub_year"] != NULL)
+										echo '<p>   '.  $authorvalue .' , '.$row["pub_year"].' </p>';
+									  else if(  $authorvalue  != NULL && $row["pub_year"] == NULL)
+										  echo '<p>   '.  $authorvalue .' </p>';
+									  else if(  $authorvalue  == NULL && $row["pub_year"] != NULL)
+										  echo '<p>  '.$row["pub_year"].' </p>';
+								echo'</div>
 								</div>
 								<div class="row">
 								<div class="span6" style="text-align: justify;" width: 500px;">
 								<div> 
-								   <img width="100px" height="40px" style="float: left; margin-right: 10px;" alt="'.$row["title"].'" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+								   <img width="100px" height="40px" style="float: left; margin-right: 10px;" alt="'.$row["title"].'" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 								<p style="text-align:justify">
 									'.$row["description"].'</P>
 								</div>
@@ -353,11 +482,13 @@
 								</div>
 								</div>
 								<div class=" bookplate span6" style="width: 410px;">
-									<div class="bookplate_text" style="padding: 410px 20px 20px 50px; word-break: break-word;">
-									<p><b>'.$row["title"].'</b></p>
-									<p> <b>Adopted by</b> <br>
-									'.$row["adopter_fname"].' </p>
-									<div class="adoption_message">
+								<div class="bookplate_text" style="padding: 410px 20px 20px 40px; word-break: break-word;">
+									<p><b>'.$row["title"].'</b></p>';
+									if(!empty($row["adopter_recognition"])){
+									echo'<p> <b>Adopted by</b> <br>
+									'.$row["adopter_recognition"].' </p>';
+									}
+									echo'<div class="adoption_message">
 									<p> <em>'.$row["adopter_ded"].'</em></p>
 									</div>
 									</div>
@@ -373,7 +504,7 @@
 		?>
 		</div>
 					<br>
-					<div class="container">
+					<div id="end" class="container">
 						<div class="row">
 							<div class="span12">&nbsp;</div>
 						</div>
@@ -396,6 +527,33 @@
 	document.documentElement.scrollTop = 0;
 	}
 	</script>
+	<?php
+
+	if(isset($_GET['action']))
+	{
+    ?>
+    <script>
+        $(function() {
+            $('html, body').animate({
+                scrollTop: $("#end").offset().top
+            }, 1400);
+         });
+		 <?php if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"])) { ?>
+		var interval = setTimeout('change()', 20 * 60 * 1000);
+
+		function change()
+		{
+			if (confirm('Your shopping cart will expire in 10 minutes due to inactivity. Please click OK to extend your cart for another 30 minutes.')) {
+				location.reload();
+			}
+		}	
+		<?php } ?>
+    </script>
+    <?php
+
+}
+
+?>
 	
 </body>
 </html>

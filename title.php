@@ -1,1 +1,1 @@
-<title>Adopt A Book</title>
+<title>Adopt-A-Book | UC Libraries</title>
