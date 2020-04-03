@@ -1,10 +1,39 @@
 <?php
-error_reporting( E_ALL );
-	include 'dbh.php';
-	$url="http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-		$parsed_url = parse_url($url);
-		$query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
-		$query = substr($query, 1);
+include 'dbh.php';
+if(!isset($_SESSION)){
+            session_start();
+        $inactive = 1800; //time for expiration
+		header("refresh: 1801");
+        ini_set('session.gc_maxlifetime', $inactive);
+        if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"]) && (time() - $_SESSION["cart"] > $inactive)) {
+			foreach($_SESSION["cart_item"] as $k => $v) {
+				$conn->query("UPDATE main_book SET adopt_status = 0 WHERE bid='" . $v["bid"] . "'");
+				$conn->query("UPDATE main_book SET user_id = NULL WHERE bid='" . $v["bid"] . "'");
+			}
+            session_unset();     // unset $_SESSION variable for this page
+            session_destroy();   // destroy session data
+        }
+        
+    }
+	error_reporting( E_ALL );
+	if(isset($_SESSION["cart_item"])){	
+		$nameoffield = 1;
+		$name = 1;
+		foreach ($_SESSION["cart_item"] as $k => $v) { 
+			$str = "dedication" . (string)$nameoffield++;
+			$adopter_name = "adopter_name" . (string)$name++;
+			if(!empty($_POST[$str])){
+				$_SESSION["cart_item"][$k]["dedication"] = $_POST[$str];
+				$_SESSION["cart_item"][$k]["name"] = $_POST[$adopter_name];
+			//	$conn->query("UPDATE main_book SET adopter_ded='" . $_POST[$str] . "' WHERE bid='" . $v["bid"] . "'");
+			}
+			else{
+				$_SESSION["cart_item"][$k]["dedication"] = null;
+				$_SESSION["cart_item"][$k]["name"] = null;
+			//$conn->query("UPDATE main_book SET adopter_ded=null WHERE bid='" . $v["bid"] . "'");
+			}
+		}
+	}
 ?>
 
 
@@ -69,7 +98,18 @@ error_reporting( E_ALL );
 	<!--[if lt IE 9]>
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->    
-	
+	<script>
+	<?php if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"])) { ?>
+		var interval = setTimeout('change()', 20 * 60 * 1000);
+
+		function change()
+		{
+			if (confirm('Your shopping cart will expire in 10 minutes due to inactivity. Please click OK to extend your cart for another 30 minutes.')) {
+				location.reload();
+			}
+		}	
+		<?php } ?>
+		</script>
 	<script>
       function countChar(val) {
         var len = val.value.length;
@@ -85,78 +125,18 @@ error_reporting( E_ALL );
 		//jquery code to load contents dynamically without reloading
 		
 		$(document).ready(function() {
-			
-			$("#fname").focusout(function() {
-
-				check_userfname();
-				
-			});
-			
-			$("#lname").focusout(function() {
-
-				check_userlname();
-				
-			});
-			
-			
-			
-			function check_userfname() {
-	
-				var username_length = $("#fname").val().length;
-				var username1_length = $("#lname").val().length;
-				var phone_length = $("#phone").val().length;
-				var pattern = new RegExp(/^[+a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i);
-		
-				if(username_length < 1) {
-					alert("First Name is mandatory");
-					$("#sbt").attr("disabled", true);
-				} else if ( username1_length == 0 ){ 
-					$("#sbt").attr("disabled", true);
-				} else {
-					$("#sbt").attr("disabled", false);
-				}
-	
-			}
-			
-			
-			function check_userlname() {
-	
-				var username_length = $("#lname").val().length;
-				var username1_length = $("#fname").val().length;
-				var phone_length = $("#phone").val().length;
-				var pattern = new RegExp(/^[+a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i);
-		
-				if(username_length < 1) {
-					alert("Last Name is mandatory");
-					$("#sbt").attr("disabled", true);
-				} else if ( username1_length == 0 ){ 
-					$("#sbt").attr("disabled", true);
-				} else {
-					$("#sbt").attr("disabled", false);
-				}
-	
-			}
-			
-			
-			
+						
 			$("#sbt").click(function() {
 				var fname = $("#fname").val();
 				var lname = $("#lname").val();
 				var phno = $("#phone").val();
 				var emailid = $("#email").val();
-				
-				var msg = $("#comment").val();
-				var id1 = "<?php echo $query; ?>";
-				$("div#cstmm").load("userdetail.php",{
+				$("div#cstmm").on('load',("userdetail.php",{
 					fname: fname,
 					lname: lname,
 					email: emailid,
-					phone: phno,
-					message: msg,
-					id: id1
-					
-				} );
-								
+					phone: phno,				
+				} );				
 			});
 		});		
 		
@@ -171,31 +151,7 @@ error_reporting( E_ALL );
 	margin-top: 30px;
 	padding-bottom: 30px;
 }
-.cstm5 {
-			background-color: #F6F4F4;
-		  color: red;
-		  padding: 7px 10px;
-		  text-decoration: none;
-		  text-transform: uppercase;
-		  border-radius: 15px;
-		  -webkit-transition-duration: 0.4s; /* Safari */
-		  transition-duration: 0.4s;
-		  cursor: pointer;
-		}
-
-		.one-edge-shadow {
-			-webkit-box-shadow: 0 8px 6px -6px black;
-			   -moz-box-shadow: 0 8px 6px -6px black;
-					box-shadow: 0 8px 6px -6px black;
-		}
-
-		.cstm5:hover {
-		  background-color: #555;
-		  color: red;
-		  
-		}
-		
-		
+	
 	#sbt {
 	  background-color: black; /* Green */
 	  border: none;
@@ -214,8 +170,8 @@ error_reporting( E_ALL );
 
 	#sbt:hover:enabled {
 	  box-shadow: 7px 4px 7px -3px rgba(0,0,0,0.35);
-	  color: black;
-	  background-color: #06D1F3;
+	  color: white;
+	  background-color: #404040;
 	}
 	
 	#sbt[disabled] {
@@ -225,7 +181,13 @@ error_reporting( E_ALL );
 	.foot1 {
 		text-align: center;
 	}
-
+	button {
+	font-size: 17px;
+	}
+	.heading{
+	color:#e00122;
+	font-size:26px;
+	}
 </style>
 
 
@@ -234,62 +196,72 @@ error_reporting( E_ALL );
 	
 <div class="main-wrapper">
 
-        <?php include("header.php")?>
+        <?php include("header.php") ?>
             
         <div id="breadcrumb">
             <div class="container">
                 <div class="row">
                     <div class="span8">
-                        <h1>Adopter-  Information Form</h1>
-                    </div>
-					
-					
+						<h2 class="heading">Adopter Information Form</h2>
+                    </div>					
                 </div>
             </div>    	
         </div>
 
 		<div class = "container" style="overflow:hidden;">
 			<div class="row">
+				<p style="margin-left:20px;font-size:16px;">Please review the information below.  If any changes are needed, use your browser's back button to return to the previous page and make corrections.</p>
 				<div class="span6"> 
 					<div class="cstm1" style="font-size:15px;">
 					<?php
-		
-				$sql = "SELECT  title, amount, image FROM main_book where Bid=$query";
-				$result = $conn->query($sql);
-				if ($result->num_rows > 0) 
-					{
-						while($row = $result->fetch_assoc()) 
-						{
-							echo '<div> <strong> Adopted book: </strong>'.$row["title"].' </div> 
-							<div> <strong>Price: </strong>$'.$row["amount"].' </div> <br>
+				
+				if(isset($_SESSION["cart_item"])){
+						$total_price = 0;
+						$incr = 1;
+						$ded = 1;
+						$recog = 1;
+						$str = "";
+						echo '<div> <strong> Adopted books: </strong> </div>';
+						echo "<br>";
+						
+						foreach ($_SESSION["cart_item"] as $item) { 
+						echo '<div class="container">
+							<div class="row">
+								<div class="span1">';echo $incr++;
+								echo'</div>
+								<div class="span1">
+									<img width="100 px" height="70px" src="/adoptabook/covers-thumb/'; echo $item["image"];echo'.jpg" class="max-image">
+								</div> 
+								<div class="span10">
+									<div ><strong>'; echo $item["title"]; echo'</strong></div>';
+									$str = "dedication" . (string)$ded++;
+									$recognition = "adopter_name" . (string)$recog++;
+									echo'<div style="line-height:30px">';if(!empty($_POST[$str])){echo'<b>Dedication: </b>';echo $_POST[$str];}echo'</div>
+									<div style="line-height:20px">';if(!empty($_POST[$recognition])){echo'<b>Recognition: </b>';echo $_POST[$recognition];}echo'</div>
+								</div>
+															
 							</div>
-							<div id="content"> 
-							<img src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" alt="" width="200px" height = "200px"> </img>
-							</div>';							
-							
+						<hr/>
+						</div>';
+						$total_price += $item["amount"];						
 						}
-					}
+						}	
 						?>
 
 				</div>
-				
-				
-				
-				
-				
+			</div>
+		</div>
+		<div class="row">
+		<div class="span6"> 
+		<strong>Total amount to be paid: <?php echo "$ ".number_format($total_price, 2);?> </strong>
+		</div>
+		</div>
+		<div class="row">		
 				
 				<?php
-				
-				$sql1 = "SELECT adopt_status FROM main_book WHERE Bid = $query";
-				$result = $conn->query($sql1);
-				$row = $result->fetch_assoc();
-				$b1 = $row["adopt_status"];
-				
-				if($b1 == 0) {
-				
 				echo '<div class="span6"> 
 						<div class="cstm1" id="cstmm">
-							<p style="color: red;">Please fill out all information</P> 
+							<p style="color: red;">Please fill out all information</p> 
 								<form id="contact_form1" method="post" action="userdetail.php" >
 									<div class="span8" style="margin-top:10px"> 
 										<label for="First Name" style="display: inline-flex; padding-right: 38px">First Name *</label>
@@ -302,54 +274,23 @@ error_reporting( E_ALL );
 									</div> 
 									
 									<div class="span8" style="margin-top:10px">
-										<label style="display: inline-flex; padding-right: 83px">Email </label>
-										<input type="text" class="span4" style="background:whitesmoke; color:black" id="email" name="email" >
+										<label style="display: inline-flex; padding-right: 73px">Email *</label>
+										<input type="email" class="span4" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" style="background:whitesmoke; color:black" id="email" name="email" required>
+										<span>Format: abc@def.xyz</span>
 									</div> 
 									<div class="span8" style="margin-top:10px">
-										<label style="display: inline-flex; padding-right: 77px">Phone </label>
-										<input type="text" class="span4" style="background:whitesmoke; color:black" id="phone" name="phone" >
+										<label style="display: inline-flex; padding-right: 68px">Phone *</label>
+										<input type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" class="span4" style="background:whitesmoke; color:black" id="phone" name="phone" required>
+										<span>Format: 123-456-7890</span>
 									</div> 
-									<div class="span12" style="margin-top:10px">
-										<label style="display: inline-flex; padding-right: 47px">Dedication</label>
-										<p style="display: inline-block; color:red;">Dedications limit is 75 characters</P> </div>
-										<div class="span12">
-										<p style="margin-left: 122px; color:red; width:115px; display: inline-block;" id="chrs" class="span8"> Used Characters : </p> 
-										<p style=" color:red; display: inline-block;" id="charNum">0 </p>
-									</div>
-										<div class="span12">
-										<textarea style="margin-left: 122px; background:whitesmoke; color:black" class="span4"  rows="3" maxlength="75" id="comment" name="message" onkeyup="countChar(this)" ></textarea>
-									</div> </form>
 									<div class="span8" style="text-align: center; margin-top:30px;margin-bottom: 30px">
-										<button id = "sbt"  disabled class="one-edge-shadow cstm5"> MAKE PAYMENT </button>
+										<button id = "sbt" class="one-edge-shadow cstm5"> Make payment </button>
 										
 									</div> 
 								
 					</div>
 				</div> ' ;
-				}
-				
-				elseif($b1 == 1){
-					
-					echo '<div class="span6"> 
-					<div class="cstm1" id="cstmm">
-					<p style="color: red;">The Book is already Adopted. Please Look for another Book</P> 
-								
-					</div>
-				</div> ' ;
-					
-				}
-				
-				else {
-					
-					echo '<div class="span6"> 
-					<div class="cstm1" id="cstmm">
-					<p style="color: red;">The Book is in Pending State. Someone already blocked the book</P> 
-								
-					</div>
-				</div> ' ;
-					
-				}
-
+		
 ?>
 
 
@@ -360,7 +301,7 @@ error_reporting( E_ALL );
 
 			</div>
 		</div>
-	</div>
+
 	
         
        

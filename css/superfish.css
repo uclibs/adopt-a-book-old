@@ -4,7 +4,7 @@ nav { line-height: 1; position: relative; z-index: 10000; margin:0; list-style-t
 .sf-menu li { position: relative; }
 .sf-menu > li:last-child { padding-right:0; }
 .sf-menu > li:first-child { background:none; }
-.sf-menu > li > a { color: #FFF; text-transform:uppercase; float: left; font-weight:600; font-size:16px; font-weight:600; padding:20px 11px 19px 11px; text-shadow: 0 1px 0 rgba(0,0,0,.4); text-decoration:none; -webkit-transition: all 0.35s ease; -moz-transition: all 0.35s ease; -o-transition: all 0.35s ease; transition: all 0.35s ease; }
+.sf-menu > li > a { color: #FFF; text-transform:uppercase; float: left; font-weight:600; font-size:15px; font-weight:600; padding:20px 11px 19px 11px; text-shadow: 0 1px 0 rgba(0,0,0,.4); text-decoration:none; -webkit-transition: all 0.35s ease; -moz-transition: all 0.35s ease; -o-transition: all 0.35s ease; transition: all 0.35s ease; }
 .sf-menu > li.current > a, .sf-menu > li > a:hover, .sf-menu > li.sfHover > a { color: #FFF; text-decoration:none; }
 .sf-menu > li.current > a { color: #FFF; }
 .sf-menu li.sfHover a:active { }

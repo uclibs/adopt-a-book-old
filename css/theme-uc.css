@@ -11,7 +11,7 @@ box-shadow: 1px 1px 5px #999;
 nav {background: url(../images/btn_glow.png) repeat-x scroll center bottom #000;}
 .sf-menu ul {border-top:4px solid #0C1B25; box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); -webkit-box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); -moz-box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); -o-box-shadow:0px 10px 25px rgba(0, 0, 0, 0.3); border-bottom:4px solid #0C1B25;}
 
-h1, .test-txt .author, .sf-menu ul li.arrow-top i, .sidebar-links ul li a:hover, .sidebar-links ul li.current a, .arrow-list.blue li:before, .arrow-list-2.blue li:before, .arrow-list-3.blue li:before, .arrow-list-4.blue li:before, .service-styel3 h3 span, .port3-head .blog-txt i, .head-two, .arrow-list-2 li:before, blockquote:before, .header-top span, .port-head h3 span{
+.test-txt .author, .sf-menu ul li.arrow-top i, .sidebar-links ul li a:hover, .sidebar-links ul li.current a, .arrow-list.blue li:before, .arrow-list-2.blue li:before, .arrow-list-3.blue li:before, .arrow-list-4.blue li:before, .service-styel3 h3 span, .port3-head .blog-txt i, .head-two, .arrow-list-2 li:before, blockquote:before, .header-top span, .port-head h3 span{
 	color:#e00122;
 }
 .sf-menu ul li a:hover, .sf-menu ul li.sfHover > a {background:url(../images/btn_glow.png) repeat-x #e00122;}

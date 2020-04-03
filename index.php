@@ -1,4 +1,22 @@
-<!doctype html>
+<?php if(!isset($_SESSION)){
+		include 'dbh.php';
+			session_start();
+		$inactive = 1800; //time for expiration
+		header("refresh: 1801");
+		ini_set('session.gc_maxlifetime', $inactive);
+
+		if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"]) && (time() - $_SESSION["cart"] > $inactive)) {
+		//session_regenerate_id(true); //generate new session ID
+			foreach($_SESSION["cart_item"] as $k => $v) {
+				$conn->query("UPDATE main_book SET adopt_status = 0 WHERE bid='" . $v["bid"] . "'");
+			}
+			session_unset();     // unset $_SESSION variable for this page
+			session_destroy();   // destroy session data
+		}
+}
+		$_SESSION["cart"] = time(); // Update session
+		?>
+		<!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
@@ -64,7 +82,18 @@
 			window.scrollTo(0,1);
 		}
 	</script>
-	
+	<script>
+	<?php if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"])) { ?>
+		var interval = setTimeout('change()', 20 * 60 * 1000);
+
+		function change()
+		{
+			if (confirm('Your shopping cart will expire in 10 minutes due to inactivity. Please click OK to extend your cart for another 30 minutes.')) {
+				location.reload();
+			}
+		}	
+		<?php } ?>
+		</script>
 	<style>
 	.foot1 {
 		text-align: center;
@@ -82,14 +111,14 @@
         <?php include("header.php")?>
         
        	<!-- Slider Wrapper -->
-         <?php include("slider-inc.php")?>
+         <?php include("slider-inc-2020.php")?>
         <!-- END Slider Wrapper -->
         
        	<div class="welcome-wrap" >
             <div class="container" style="background: white;color: black;text-align: justify;padding: 4px;">
                 <div class="row" style="width:100%;">
                     <div class="span12" style="width:auto;">
-					  <div class="callout clearfix"><div class="cll-left"><strong>The UC Libraries Adopt-A-Book program provides essential funding to support the preservaton, acquisition and digitization of books, manuscripts and collections held by the region&rsquo;s top-ranked research library</strong>. 
+					  <div class="callout clearfix"><div class="cll-left"><strong>The UC Libraries Adopt-A-Book program provides essential funding to support the preservation, acquisition and digitization of books, manuscripts and collections held by the region&rsquo;s top-ranked research library</strong>. 
 					</div></div>
                 <p><span class="cll-left">Book adoptions are a wonderful way to honor loved ones and mark special occasions, while supporting the mission of the UC Libraries.</span></p>
                 <p>When you adopt a book, you will be acknowledged via a virtual bookplate on our website and on a physical bookplate in your selected item. If you would like to adopt a book in honor or in memory of someone, please indicate this during the check-out process. All Adopt-A-Book donations are tax deductible. Donors will receive a gift acknowledgment and tax receipt from the UC Foundation. </p>

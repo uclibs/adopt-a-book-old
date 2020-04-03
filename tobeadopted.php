@@ -35,6 +35,22 @@
        {
         $select3=""; 
        };  
+		if(!isset($_SESSION)){
+			session_start();
+		$inactive = 1800; //time for expiration
+		header("refresh: 1801");
+		ini_set('session.gc_maxlifetime', $inactive);
+
+		if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"]) && (time() - $_SESSION["cart"] > $inactive)) {
+		//session_regenerate_id(true); //generate new session ID
+			foreach($_SESSION["cart_item"] as $k => $v) {
+				$conn->query("UPDATE main_book SET adopt_status = 0 WHERE bid='" . $v["bid"] . "'");
+			}
+			session_unset();     // unset $_SESSION variable for this page
+			session_destroy();   // destroy session data
+		}
+		}
+		$_SESSION["cart"] = time(); // Update session
 ?>
 
 <!doctype html>
@@ -99,6 +115,18 @@
     
     <!-- JQuery Custom Plugin -->
     <script type='text/javascript' src="js/custom.js"></script>	
+	<script>
+	<?php if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"])) { ?>
+		var interval = setTimeout('change()', 20 * 60 * 1000);
+
+		function change()
+		{
+			if (confirm('Your shopping cart will expire in 10 minutes due to inactivity. Please click OK to extend your cart for another 30 minutes.')) {
+				location.reload();
+			}
+		}	
+		<?php } ?>
+		</script>
     <script type="text/javascript">	
 		$(window).bind("load", function() {
 			$(document).ready(function() {
@@ -130,7 +158,7 @@
 				select1 = $("#s1 :selected").text();
 				select2 = $("#s2 :selected").text();
 				select3 = $("#s3").val();
-				window.location.replace("http://libapps.libraries.uc.edu/adoptabook/tobeadopted.php?page=1&category="+select1+"&library="+select2+"&title="+select3+"");
+				window.location.replace("/adoptabook/tobeadopted.php?page=1&category="+select1+"&library="+select2+"&title="+select3+"");
 			});
 			
 			});
@@ -149,8 +177,8 @@
 	#next,#prev,#reset,#search {
 	  background-color: white; 
 	  border: none;
-	  color:#4A70C5;
-	  padding: 8px 14px;
+	  color: #046B99;
+	  padding: 7px 14px;
 	  text-align: center;
 	  text-decoration: none;
 	  display: inline-block;
@@ -163,39 +191,45 @@
 	}
 
 	
-	#next:hover:enabled {
+	#next:hover {
 	  box-shadow: 7px 4px 7px -3px rgba(0,0,0,0.35);
-	   color: #4A70C5;
+	   color: #046B99;
 	  background-color: #FFF;
+	  font-weight:normal;
+	  text-decoration:underline;
 	}
 	
-	#prev:hover:enabled {
+	#prev:hover {
 	  box-shadow: 7px 4px 7px -3px rgba(0,0,0,0.35);
-	   color: #4A70C5;
+	   color: #046B99;
 	  background-color: #FFF;
+	  font-weight:normal;
+	  text-decoration:underline;
 	}
 	
 	#reset:hover{
 	  box-shadow: 7px 4px 7px -3px rgba(0,0,0,0.35);
-	   color: #4A70C5;
+	   color: #046B99;
 	  background-color: #FFF;
 	}
 	
 	#search:hover{
 	  box-shadow: 7px 4px 7px -3px rgba(0,0,0,0.35);
-	  color: #4A70C5;
+	  color: #046B99;
 	  background-color: #FFF;
 	}
 	
 
 	#next[disabled] {
-		background: #cccccc;
+		color: black;
 		cursor: not-allowed;
+		font-weight:normal;
 	}
 	
 	#prev[disabled] {
-		background: #cccccc;
+		color: black;
 		cursor: not-allowed;
+		font-weight:normal;
 	}
 	
 	.foot1 {
@@ -204,7 +238,7 @@
 	
 	#mainselection select {
    border: 0;
-   color: blue;
+   color: #046B99;
    
    font-size: 15px;
    font-weight: bold;
@@ -216,7 +250,7 @@
 #mainselection {
    
    width:180px;
-   
+   color: #046B99;
    -moz-border-radius: 2px 2px 9px 9px;
    -webkit-border-radius: 9px 9px 9px 9px;
    border-radius: 1px 1px 1px 1px;
@@ -224,8 +258,13 @@
    background: white;
    height: 30px;
 }
-
-
+.heading{
+	color:#e00122;
+	font-size:26px;
+}
+a{
+	color: #046B99;
+}
 
 	</style>
 </head>
@@ -241,7 +280,7 @@
             <div class="container">
                 <div class="row">
                     <div class="span8">
-                        <h1>Books Available</h1>
+                        <h2 class="heading">Available Books</h2>
                         
                     </div>
                 </div>
@@ -251,7 +290,7 @@
 	
 					 <div class="row" style="margin-bottom: 30px;">
 					
-						<div class="span3"> <br> <h4><strong>Search By Category</strong></h4>
+						<div class="span3"> <br> <h4><strong>Search by Category</strong></h4>
 						<div id="mainselection">
 								<select id = "s1" name="category1" style="background-color: white;">
 								  <option value="any">--ALL--</option>
@@ -260,12 +299,12 @@
 								</select> </div>
 								</div>
 								
-						<div class="span3"> <br> <h4><strong>Search By Library</strong></h4>
+						<div class="span3"> <br> <h4><strong>Search by Library</strong></h4>
 						<div id="mainselection">
 								<select id="s2" name="library" style="background-color: white;">
 								  <option value="any">--ALL--</option>
-								  <option value="arbl">Archives & Rare Books Library</option>
-								  <option value="jmbcl">John Miller Burnam Classical Library</option>
+								  <option value="arbl">Archives &amp; Rare Books Library</option>
+								  <option value="jmbcl">John Miller Burnam Classics Library</option>
 								  <option value="ceasl">College of Engineering and Applied Science Library</option>
 								  <option value="cecjhsl">College of Education, Criminal Justice, and Human Services Library</option>
 								  <option value="rdksl">Robert A. Deshon and Karl J. Schlachter Library of Design, Architecture, Art, and Planning</option>
@@ -274,17 +313,18 @@
 								  <option value="dhhsl">Donald C. Harrison Health Sciences Library</option>
 								  <option value="rocbl">Ralph E. Oesper Chemistry-Biology Library</option>
 								  <option value="hwchhp">Henry R. Winkler Center for the History of the Health Professions</option>
+								  <option value="epr">Elliston Poetry Room</option>
 								</select> </div>
 								</div>
-						<div class="span3"> <br> <h4><strong>Search By Title</strong></h4>
+						<div class="span3"> <br> <h4><strong>Search by Title</strong></h4>
 						
 								<input type="text" id="s3" class="span3" style="background-color:white;" name="search" > </div> 
 								
 						<div class="span3">  <br> <br>         
                     <div class="pagination pagination-centered">
                         <ul style="padding-top:10px;">
-                            <li><button id="search" style="font-weight: bold;border: 1px solid #fff;border-radius: 12px; border: 1px solid;">Search</button></li>
-                            <li><button id="reset" onclick="topFunction()" style="font-weight: bold;border: 1px solid #fff;border-radius: 12px; border: 1px solid;">Reset </button></li>
+                            <li><button id="search" style="font-weight: bold;border-radius: 12px; border: 1px solid #046B99;">Search</button></li>
+                            <li><button id="reset" onclick="topFunction()" style="font-weight: bold;border-radius: 12px; border: 1px solid #046B99;">Reset </button></li>
                         </ul>
                     </div>
                 </div>
@@ -305,42 +345,101 @@
 				$adopt_status = '(0)';				
 				
 				//$sql = "SELECT  Bid, amount, title, author, category, library, image, foundation_link FROM main_book WHERE adopt_status IN (0,2) AND title LIKE '%$title%' AND category = '$category' AND library = '$library' LIMIT $record_index, $limit";
-				
+				//date_default_timezone_set('EDT');
+				$date_now = date("Y-m-d H:i:s");
+				$User = $_SERVER['REMOTE_ADDR'];
+				$User_Range = "10.";
+				$date_after_event = date("2020-03-10 00:00:00");
+				$date_of_event_start = date("2020-03-12 16:00:00");
+				$date_of_event_end = date("2020-03-12 23:59:59");
+				$current_year = '2020';
+				$previous_years = '(2019)';
 				
 				if($select1=="--ALL--" && $select2 == "--ALL--" && $select3 == ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status ";
-					
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status ";
+					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status AND adopt_year IN $previous_years";
+					}
 				}
 				elseif($select1!="--ALL--" && $select2 != "--ALL--" && $select3 != ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' ";
 					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years";
+					}
+				}
 				elseif($select1=="--ALL--" && $select2 != "--ALL--" && $select3 != ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND library = '$select2' ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND library = '$select2' ";
 					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years";
+					}
+				}
 				elseif($select1!="--ALL--" && $select2 == "--ALL--" && $select3 != ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status ";
 					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%' AND category = '$select1' AND adopt_status IN $adopt_status AND adopt_year IN $previous_years";
+					}
+				}
 				elseif($select1!="--ALL--" && $select2 != "--ALL--" && $select3 == ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE  category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE  category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE  category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE  category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' ";
 					}
+					else {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE  category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE  category = '$select1' AND adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years";
+					}
+				}
 				elseif($select1=="--ALL--" && $select2 == "--ALL--" && $select3 != ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%'  AND adopt_status IN $adopt_status ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%'  AND adopt_status IN $adopt_status ";
 					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE title LIKE '%$select3%' AND adopt_status IN $adopt_status AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE title LIKE '%$select3%'  AND adopt_status IN $adopt_status AND adopt_year IN $previous_years";
+					}
+				}
 				elseif($select1!="--ALL--" && $select2 == "--ALL--" && $select3 == ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE category = '$select1' AND adopt_status IN $adopt_status  LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE category = '$select1' AND adopt_status IN $adopt_status  ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE category = '$select1' AND adopt_status IN $adopt_status  LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE category = '$select1' AND adopt_status IN $adopt_status  ";
 					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE category = '$select1' AND adopt_status IN $adopt_status AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE category = '$select1' AND adopt_status IN $adopt_status  AND adopt_year IN $previous_years";
+					}
+				}
 				elseif($select1=="--ALL--" && $select2 != "--ALL--" && $select3 == ""){
-					$sql = "SELECT  Bid, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
-					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status AND library = '$select2' ";
+					if ($date_now > $date_after_event || ($date_now > $date_of_event_start && $date_now < $date_of_event_end && strpos($User, $User_Range ) === 0)) {
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status AND library = '$select2' LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status AND library = '$select2' ";
 					}
+					else{
+						$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years LIMIT $record_index, $limit";
+						$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status AND library = '$select2' AND adopt_year IN $previous_years";
+					}
+				}
 				
+				if(isset($_GET["showall"])) {
+					$sql = "SELECT  Bid, adopt_year, title, amount, author, image, category, library FROM main_book WHERE adopt_status IN $adopt_status LIMIT $record_index, $limit";
+					$sql1 = "SELECT  count(*) AS total_count FROM main_book WHERE adopt_status IN $adopt_status ";
+				}
 				
 				$result = $conn->query($sql);
 				$count =0;
@@ -359,6 +458,7 @@
 					while($row = $result->fetch_assoc()) 
 					{
 						$count = $count + 1;
+                         $authorvalue = trim($row["author"]); 
 						echo '
 									<div class="container">
 	
@@ -366,16 +466,16 @@
 										
 											<div class="span3">
 												<a href="/adoptabook/readmore.php?'.$row["Bid"].'">
-													<img width="100px" height="40px" alt="" src="http://libapps.libraries.uc.edu/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
+													<img width="100px" height="40px" alt="" src="/adoptabook/covers-thumb/'.$row["image"].'.jpg" class="max-image">
 												</a>
 											</div> 
 											<div class="span9">
-												<a href="/adoptabook/readmore.php?'.$row["Bid"].'"> <h3>'.$row["aab-number"].$row["title"].' </h3></a>
+												<a href="/adoptabook/readmore.php?'.$row["Bid"].'"> <h3>'.$row["title"].' </h3></a>
 												<strong>Adoption Amount: </strong>$<span>'.$row["amount"].'</span> <br>
-												<strong>Author: </strong><span>'.$row["author"].'</span> <br>
+												<strong>Author: </strong><span>'.$authorvalue.'</span> <br>
 												<strong>Category: </strong><span>'.$row["category"].'</span> <br>
 												<strong>Library: </strong><span>'.$row["library"].'</span> <br>
-												<a href="readmore.php?'.$row["Bid"].'">Link to Read More</a>
+												<a href="readmore.php?'.$row["Bid"].'">Read more</a>
 											</div>
 										
 									  </div> <br> <br>
@@ -424,33 +524,55 @@
 							
 							if($prv<=0)
 								echo '
-								<li><a href="#" id="prev" style="font-weight: bold;border: 2px solid #000;border-radius: 10px; pointer-events: none" disabled>Prev</a></li>
+								<li><a href="#" id="prev" style="font-weight:normal;border: none; pointer-events: none" disabled><span aria-hidden="true">&laquo;</span></a></li>
 							';
-							else
+							else{
+								if(isset($_GET["showall"])) {
 							echo '
-								<li><a href="/adoptabook/tobeadopted.php?&page='.$prv.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="prev" style="font-weight: bold;border: 2px solid #000;border-radius: 10px;background:#124f7c; color:white;" >Prev</a></li>
+								<li><a href="/adoptabook/tobeadopted.php?&page='.$prv.'&category='.$select1.'&library='.$select2.'&title='.$select3.'&showall" id="prev" style="border: none; color:#046B99;font-weight:normal;" ><span aria-hidden="true">&laquo;</span></a></li>
 							';
+							}
+							else{
+							echo '
+								<li><a href="/adoptabook/tobeadopted.php?&page='.$prv.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="prev" style="border: none; color:#046B99;font-weight:normal;" ><span aria-hidden="true">&laquo;</span></a></li>
+							';
+							}
+							}
 								while($i<=$total_pages){
 									if($i==$page_number)
 										echo '
-								<li><a href="/adoptabook/tobeadopted.php?&page='.$i.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="prev" style="background:#E00122; color:white; font-weight: bold;border: 2px solid #000;border-radius: 10px;" >'.$i.'</a></li>
+								<li><a id="prev" style="color:#046B99;border: none;font-weight:bold; cursor: text;pointer-events: none;">'.$i.'</a></li>
 								';
-								else 
+								else {
+									if(isset($_GET["showall"])) {
+									echo '
+									<li><a href="/adoptabook/tobeadopted.php?&page='.$i.'&category='.$select1.'&library='.$select2.'&title='.$select3.'&showall" id="prev" style="border: none;font-weight:normal;" >'.$i.'</a></li>
+								';}
+									else{
 								echo '
-								<li><a href="/adoptabook/tobeadopted.php?&page='.$i.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="prev" style="font-weight: bold;border: 2px solid #000;border-radius: 10px;" >'.$i.'</a></li>
+								<li><a href="/adoptabook/tobeadopted.php?&page='.$i.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="prev" style="border: none;font-weight:normal;" >'.$i.'</a></li>
 								';
+									}
+								}
 								$i++;
 								$j++;
 								if($j==5) break;
 								}
-								if($nxt<=$total_pages)
+								if($nxt<=$total_pages){
+									if(isset($_GET["showall"])) {
 									echo '
-									<li><a href="/adoptabook/tobeadopted.php?&page='.$nxt.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="next" style="font-weight: bold;border: 2px solid #000;border-radius: 10px;background:#124f7c; color:white;" >Next</a></li>
+									<li><a href="/adoptabook/tobeadopted.php?&page='.$nxt.'&category='.$select1.'&library='.$select2.'&title='.$select3.'&showall" id="next" style="border: none; font-weight:normal; color:#046B99;" ><span aria-hidden="true">&raquo;</span></a></li>
 								
-								';
+									';}
+									else{
+									echo '
+									<li><a href="/adoptabook/tobeadopted.php?&page='.$nxt.'&category='.$select1.'&library='.$select2.'&title='.$select3.'" id="next" style="border: none; font-weight:normal; color:#046B99;" ><span aria-hidden="true">&raquo;</span></a></li>
+								
+									';}
+									}
 								else
 								echo '
-									<li><a href="#" id="next" style="font-weight: bold;border: 2px solid #000;border-radius: 10px; pointer-events: none;" disabled>Next</a></li>
+									<li><a href="#" id="next" style="font-weight:normal; border: none; pointer-events: none;" disabled><span aria-hidden="true">&raquo;</span></a></li>
 								
 								';
 
@@ -481,7 +603,7 @@
 	<script>
 	function topFunction() 
 	{
-	window.location.replace("http://libapps.libraries.uc.edu/adoptabook/tobeadopted.php?page=1");
+	window.location.replace("/adoptabook/tobeadopted.php?page=1");
 	}
 	</script>
 	

@@ -1,3 +1,21 @@
+<?php if(!isset($_SESSION)){
+		include 'dbh.php';
+			session_start();
+		$inactive = 1800; //time for expiration
+		header("refresh: 1801");
+		ini_set('session.gc_maxlifetime', $inactive);
+
+		if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"]) && (time() - $_SESSION["cart"] > $inactive)) {
+		//session_regenerate_id(true); //generate new session ID
+			foreach($_SESSION["cart_item"] as $k => $v) {
+				$conn->query("UPDATE main_book SET adopt_status = 0 WHERE bid='" . $v["bid"] . "'");
+			}
+			session_unset();     // unset $_SESSION variable for this page
+			session_destroy();   // destroy session data
+		}
+}
+		$_SESSION["cart"] = time(); // Update session
+		?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -57,7 +75,18 @@
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->    
 	
-	
+	<script>
+	<?php if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"])) { ?>
+		var interval = setTimeout('change()', 20 * 60 * 1000);
+
+		function change()
+		{
+			if (confirm('Your shopping cart will expire in 10 minutes due to inactivity. Please click OK to extend your cart for another 30 minutes.')) {
+				location.reload();
+			}
+		}	
+		<?php } ?>
+		</script>
 	<script>
 		//jquery code to load contents dynamically without reloading
 		
@@ -90,7 +119,6 @@
 				var pattern = new RegExp(/^[+a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i);
 		
 				if(username_length < 1) {
-					alert("First Name is Mandatory");
 					$("#sbt").attr("disabled", true);
 				} else if (lastname_length < 3 || (pattern.test($("#email").val())) == 0){ 
 					$("#sbt").attr("disabled", true);
@@ -107,7 +135,6 @@
 				var pattern = new RegExp(/^[+a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i);
 		
 				if(lastname_length < 1) {
-					alert("Last Name is Mandatory");
 					$("#sbt").attr("disabled", true);
 				} else if (username_length < 3 || (pattern.test($("#email").val())) == 0){ 
 					$("#sbt").attr("disabled", true);
@@ -187,7 +214,10 @@
 	.foot1 {
 		text-align: center;
 	}
-	
+	.heading{
+	color:#e00122;
+	font-size:26px;
+	}
 	</style>
 	
 </head>
@@ -203,7 +233,7 @@
             <div class="container">
                 <div class="row">
                     <div class="span8">
-                        <h1>Contact Us</h1>
+                        <h2 class="heading">Contact Us</h2>
                     </div>
                     
                 </div>
@@ -250,6 +280,16 @@
                 </div>
                  <div class="span4">
                     <h3>Christa Bernardo<br>Director Of Development</h3>
+					<div class="office-info">
+                        <div class="icon-wrap-foot">
+                            <i class="icon-envelope"></i>
+                        </div>
+                        <div class="office-txt">
+                            <strong>Email</strong><br>
+                            <a href="mailto:bernarct@ucmail.uc.edu">bernarct@ucmail.uc.edu</a>
+                        </div>
+                    </div>   
+					
                     <div class="office-info">
                         <div class="icon-wrap-foot">
                             <i class="icon-map-marker"></i>

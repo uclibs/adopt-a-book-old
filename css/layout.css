@@ -25,7 +25,7 @@ nav{float:right;}
 
 /* Slider Wrap */
 .slider-wrap.slider-wrap-no-margin { margin-bottom: 0; }
-.slider-wrap { background-color: #FFFFFF; background-image: url("../img/slider-wrap-bg.png"); border-bottom: 1px solid #DDDDDD; margin-bottom: 40px; }
+.slider-wrap { background-color: #FFFFFF; background-image: url("../img/slider-wrap-bg.png"); margin-bottom: 40px; }
 .fullwidthbanner-container { max-height: 550px !important; overflow: hidden; padding: 0; position: relative; width: 100% !important; }
 /* Slider Wrap */
 
