@@ -4,9 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 	if(!isset($_SESSION)){
-			session_start();
 		$inactive = 1800; //time for expiration
 		ini_set('session.gc_maxlifetime', $inactive);
+		session_start();
 
 		if (isset($_SESSION["cart"]) && !empty($_SESSION["cart_item"]) && (time() - $_SESSION["cart"] > $inactive)) {
 		//session_regenerate_id(true); //generate new session ID
