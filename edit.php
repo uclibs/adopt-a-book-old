@@ -8,8 +8,8 @@
 		$category = $_POST['category'];
 		$pub_year = $_POST['pub_year'];
 		$adopt_year = $_POST['adopt_year'];
-		$description = $_POST['description'];
-		$condition_treatment = $_POST['condition_treatment'];
+		$description = addslashes($_POST['description']);
+		$condition_treatment = addslashes($_POST['condition_treatment']);
 		$fname = $_POST['fname'];
 		$lname = $_POST['lname'];
 		$phone = $_POST['phone'];
@@ -17,7 +17,7 @@
 		$dedication = $_POST['ded'];
 		$recognition = $_POST['recognition'];
 		$adopt_status = $_POST['status'];
-		$conn->query("UPDATE main_book_test SET adopt_year = '". $adopt_year."', author = '". $author."', condition_treatment = '". $condition_treatment."', category = '". $category."', pub_year = '". $pub_year."', description = '". $description."', adopter_fname = '". $fname."' , adopter_lname='". $lname."' , adopter_phone ='". $phone."',adopter_email='". $email."' ,adopt_status ='". $adopt_status."', adopter_ded = '" . $dedication . "', adopter_recognition= '" . $recognition . "' WHERE bid='" . $query . "'");
+		$conn->query("UPDATE main_book SET adopt_year = '". $adopt_year."', author = '". $author."', condition_treatment = '". $condition_treatment."', category = '". $category."', pub_year = '". $pub_year."', description = '". $description."', adopter_fname = '". $fname."' , adopter_lname='". $lname."' , adopter_phone ='". $phone."',adopter_email='". $email."' ,adopt_status ='". $adopt_status."', adopter_ded = '" . $dedication . "', adopter_recognition= '" . $recognition . "' WHERE bid='" . $query . "'");
 		//header("Location: /adoptabook/admin.php?success");
 	}
 ?>
@@ -137,7 +137,7 @@
 <div class="row">
 	<br/><br/>
 	<?php 
-	$sql = "SELECT  author, category, library, pub_year, title, amount, description, adopt_year, condition_treatment, adopt_status, adopter_fname ,adopter_lname, adopter_phone, adopter_email, adopter_ded , adopter_recognition, adopt_date FROM main_book_test where Bid=$query";
+	$sql = "SELECT  author, category, library, pub_year, title, amount, description, adopt_year, condition_treatment, adopt_status, adopter_fname ,adopter_lname, adopter_phone, adopter_email, adopter_ded , adopter_recognition, adopt_date FROM main_book where Bid=$query";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) 
 	{
