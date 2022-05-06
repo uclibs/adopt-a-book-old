@@ -49,7 +49,7 @@ if(!isset($_SESSION)){
 				$foundation_link = "https://foundation.uc.edu/give/hidden-treasures?amount=" . (string)$total_price;
 				$message_user = "Thank you for adopting book(s) from UC Libraries!  Your pre-order is complete.
 You will also receive a confirmation email from the UC Foundation, by the sender 'JotForm ucfoundation1@uc.edu' after your payment is complete. It is possible for the confirmation email to land in your junk/spam folder.\n
-If you have any questions, please contact Christa Bernardo at +1(513)-556-0055 or bernarct@ucmail.uc.edu.";
+If you have any questions, please contact Christa Bernardo at +1(513)-556-0055 or bernarct@foundation.uc.edu.";
 				$headers_user = "From: Christa Bernardo <bernarct@ucmail.uc.edu>\r\nAdopt-a-book program by University of Cincinnati Libraries";
 				$subject_user = "UC Libraries Adopt-A-Book confirmation";
 				$headers_admin = "Hi Christa,
